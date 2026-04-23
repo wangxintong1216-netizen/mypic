@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅行相册 · Travel Album</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F2ED;
+    --surface: #FAFAF8;
+    --card: #FFFFFF;
+    --text-primary: #1A1917;
+    --text-secondary: #6B6860;
+    --text-muted: #A09D98;
+    --border: rgba(26,25,23,0.10);
+    --border-strong: rgba(26,25,23,0.20);
+    --accent: #2C5F2E;
+    --accent-light: #E8F0E8;
+    --tag-asia-bg: #E8F4FB; --tag-asia-text: #1A4F72;
+    --tag-europe-bg: #F0EBFB; --tag-europe-text: #4A2D8F;
+    --tag-nature-bg: #E8F0E8; --tag-nature-text: #2C5F2E;
+    --tag-food-bg: #FDF3E3; --tag-food-text: #7A4F1A;
+    --tag-city-bg: #F0F0F0; --tag-city-text: #3A3A3A;
+    --overlay-bg: rgba(10,9,8,0.92);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border-strong);
+    padding: 0 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(12px);
+  }
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+    gap: 1rem;
+  }
+  .logo {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .logo-title {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 400;
+    font-size: 17px;
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+  }
+  .logo-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-upload {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-upload:hover { opacity: 0.85; }
+  .btn-upload svg { width: 14px; height: 14px; }
+
+  /* ── HERO STRIP ── */
+  .hero {
+    background: var(--surface);
+    padding: 2.5rem 1.5rem 2rem;
+    text-align: center;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .hero-label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .hero h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 300;
+    font-size: clamp(22px, 5vw, 30px);
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .hero p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  /* ── TABS ── */
+  .tabs-wrapper {
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 1.5rem;
+    position: sticky;
+    top: 57px;
+    z-index: 40;
+  }
+  .tabs {
+    display: flex;
+    gap: 0;
+    max-width: 900px;
+    margin: 0 auto;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0;
+    padding: 13px 16px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text-primary); }
+  .tab.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--text-primary);
+    font-weight: 500;
+  }
+  .tab-count {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+  .results-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .results-count {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── GRID ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+  }
+  @media (max-width: 540px) {
+    .grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    main { padding: 1rem; }
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s;
+    animation: fadeUp 0.35s ease both;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+  .card:active { transform: translateY(0) scale(0.98); }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-photo {
+    aspect-ratio: 4 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-photo img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    position: absolute; inset: 0;
+  }
+  .card-body { padding: 12px 14px 14px; }
+  .card-tag {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+    line-height: 1.4;
+  }
+  .card-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-meta {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .card-meta svg { width: 11px; height: 11px; }
+
+  /* ── LIGHTBOX ── */
+  .lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--overlay-bg);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .lightbox.open { display: block; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .lb-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(to bottom, rgba(10,9,8,0.8), transparent);
+  }
+  .lb-location {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.06em;
+  }
+  .lb-close {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 0.5px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .lb-close:hover { background: rgba(255,255,255,0.18); }
+
+  .lb-image {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 4/3;
+    font-size: 80px;
+    border-radius: 0;
+  }
+  .lb-image img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .lb-body {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 3rem;
+    color: #fff;
+  }
+  .lb-tag {
+    display: inline-block;
+    padding: 3px 11px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 12px;
+  }
+  .lb-title {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 400;
+    font-size: clamp(18px, 4vw, 22px);
+    line-height: 1.35;
+    margin-bottom: 14px;
+  }
+  .lb-divider {
+    width: 32px;
+    height: 1px;
+    background: rgba(255,255,255,0.25);
+    margin-bottom: 14px;
+  }
+  .lb-story {
+    font-size: 14px;
+    line-height: 1.85;
+    color: rgba(255,255,255,0.75);
+  }
+  .lb-footer {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 0.5px solid rgba(255,255,255,0.12);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+  }
+  .lb-nav {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+  .lb-nav-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 0.5px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .lb-nav-btn:hover { background: rgba(255,255,255,0.15); }
+  .lb-nav-btn:disabled { opacity: 0.25; cursor: default; }
+
+  /* ── UPLOAD MODAL ── */
+  .modal-wrap {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgba(10,9,8,0.6);
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-wrap.open { display: flex; animation: fadeIn 0.2s ease; }
+  .modal {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    width: 100%;
+    max-width: 420px;
+    border: 0.5px solid var(--border-strong);
+  }
+  .modal h3 {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 400;
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  .modal-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 1.25rem; }
+
+  .drop-zone {
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 1.25rem;
+    transition: background 0.15s;
+  }
+  .drop-zone:hover { background: var(--bg); }
+  .drop-zone .dz-icon { font-size: 28px; margin-bottom: 8px; }
+  .drop-zone p { font-size: 13px; color: var(--text-secondary); }
+  .drop-zone span { font-size: 11px; color: var(--text-muted); }
+  .drop-zone input[type="file"] { display: none; }
+  .dz-preview {
+    width: 100%; aspect-ratio: 16/9;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    display: none;
+    margin-bottom: 8px;
+  }
+
+  .form-row { margin-bottom: 12px; }
+  .form-row label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 5px; font-weight: 500; }
+  .form-row input, .form-row select, .form-row textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary);
+    background: var(--surface);
+    outline: none;
+    transition: border-color 0.15s;
+    resize: none;
+  }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+    border-color: var(--accent);
+  }
+  .form-row textarea { height: 80px; line-height: 1.6; }
+
+  .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+  .btn-cancel {
+    padding: 8px 16px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: 20px;
+    background: transparent;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .btn-save {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 20px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-save:hover { opacity: 0.85; }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  .empty .e-icon { font-size: 36px; margin-bottom: 10px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--text-primary);
+    color: var(--bg);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    opacity: 0;
+    transition: all 0.25s;
+    pointer-events: none;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    border-top: 0.5px solid var(--border);
+    margin-top: 2rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-title">旅行相册</span>
+      <span class="logo-sub">Travel Album</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-upload" onclick="openUpload()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M8 11V3M5 6l3-3 3 3M3 12h10"/>
+        </svg>
+        上传照片
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Photo Journal</div>
+  <h2>每一段旅途，都值得被记住</h2>
+  <p>点击照片查看完整故事，点击上传按钮添加你的旅行记忆</p>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrapper">
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="filterTag('全部')" data-tag="全部">全部 <span class="tab-count" id="tc-all">6</span></button>
+    <button class="tab" onclick="filterTag('亚洲')" data-tag="亚洲">亚洲 <span class="tab-count" id="tc-亚洲">1</span></button>
+    <button class="tab" onclick="filterTag('欧洲')" data-tag="欧洲">欧洲 <span class="tab-count" id="tc-欧洲">1</span></button>
+    <button class="tab" onclick="filterTag('自然')" data-tag="自然">自然 <span class="tab-count" id="tc-自然">2</span></button>
+    <button class="tab" onclick="filterTag('美食')" data-tag="美食">美食 <span class="tab-count" id="tc-美食">1</span></button>
+    <button class="tab" onclick="filterTag('城市')" data-tag="城市">城市 <span class="tab-count" id="tc-城市">1</span></button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main>
+  <div class="results-bar">
+    <span class="results-count" id="results-count">共 6 张照片</span>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>© 2025 旅行相册 · 记录每一段旅途的故事</footer>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <div class="lb-header">
+    <span class="lb-location" id="lb-location"></span>
+    <button class="lb-close" onclick="closeLightbox()">×</button>
+  </div>
+  <div class="lb-image" id="lb-image"></div>
+  <div class="lb-body">
+    <span class="lb-tag" id="lb-tag"></span>
+    <div class="lb-title" id="lb-title"></div>
+    <div class="lb-divider"></div>
+    <div class="lb-story" id="lb-story"></div>
+    <div class="lb-footer">
+      <span id="lb-date"></span>
+      <span id="lb-loc-foot"></span>
+      <div class="lb-nav">
+        <button class="lb-nav-btn" id="lb-prev" onclick="navigateLightbox(-1)">←</button>
+        <button class="lb-nav-btn" id="lb-next" onclick="navigateLightbox(1)">→</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UPLOAD MODAL -->
+<div class="modal-wrap" id="modal-wrap">
+  <div class="modal">
+    <h3>添加旅行照片</h3>
+    <p class="modal-sub">上传一张照片，写下它背后的故事</p>
+
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <img class="dz-preview" id="dz-preview" alt="预览">
+      <div class="dz-icon" id="dz-icon">📷</div>
+      <p>点击选择照片</p>
+      <span>支持 JPG、PNG、WEBP 格式</span>
+      <input type="file" id="file-input" accept="image/*" onchange="handleFile(this)">
+    </div>
+
+    <div class="form-row">
+      <label>照片主题 *</label>
+      <input type="text" id="f-title" placeholder="例：东京铁塔的黄昏">
+    </div>
+    <div class="form-row">
+      <label>分类标签</label>
+      <select id="f-tag">
+        <option value="亚洲">亚洲</option>
+        <option value="欧洲">欧洲</option>
+        <option value="自然">自然</option>
+        <option value="美食">美食</option>
+        <option value="城市">城市</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>拍摄地点</label>
+      <input type="text" id="f-location" placeholder="例：日本 · 东京">
+    </div>
+    <div class="form-row">
+      <label>拍摄时间</label>
+      <input type="text" id="f-date" placeholder="例：2024年10月">
+    </div>
+    <div class="form-row">
+      <label>照片故事 / 描述</label>
+      <textarea id="f-story" placeholder="写下这张照片背后的故事……"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeUpload()">取消</button>
+      <button class="btn-save" onclick="savePhoto()">保存照片</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const TAG_COLORS = {
+  '亚洲': { bg: '#E8F4FB', text: '#1A4F72' },
+  '欧洲': { bg: '#F0EBFB', text: '#4A2D8F' },
+  '自然': { bg: '#E8F0E8', text: '#2C5F2E' },
+  '美食': { bg: '#FDF3E3', text: '#7A4F1A' },
+  '城市': { bg: '#F0F0F0', text: '#3A3A3A' },
+};
+
+const TAG_PHOTO_BG = {
+  '亚洲': '#D0E8F5', '欧洲': '#E2D5F8', '自然': '#D0E8D0',
+  '美食': '#FAE8C8', '城市': '#E0E0E0'
+};
+
+let photos = [
+  { id: 1, emoji: '🗼', tag: '亚洲', title: '东京铁塔的黄昏', desc: '傍晚时分，橙红色的天空将铁塔染成金色。', story: '那天是旅行的最后一天，我在芝公园的草坪上静静坐着，看着铁塔在黄昏中渐渐亮起灯光。身边的人们用各种语言交谈，却共同仰望着同一片天空。那一刻，我突然明白了"旅行"的意义——不是到达，而是此刻的存在。', location: '日本 · 东京', date: '2024年10月', imgSrc: null },
+  { id: 2, emoji: '🏛️', tag: '欧洲', title: '雅典卫城的晨光', desc: '清晨的阳光斜斜地打在帕特农神庙的廊柱上。', story: '为了避开人群，我在清晨六点便爬上了卫城山。整座遗址几乎只有我一人，脚下是两千年前铺就的石板。站在神庙前，历史不再是书本里的文字，而是扑面而来的风和脚下的震动。', location: '希腊 · 雅典', date: '2024年6月', imgSrc: null },
+  { id: 3, emoji: '🌲', tag: '自然', title: '奥克兰雨林徒步', desc: '新西兰北岛的原始雨林，空气里充满了青苔的气息。', story: '走进这片森林，城市的喧嚣立刻消失得无影无踪。头顶是遮天蔽日的树冠，脚下是松软的落叶。同行的朋友说，这里的树已经活了五百年——而我们不过是短暂的过客。', location: '新西兰 · 奥克兰', date: '2023年12月', imgSrc: null },
+  { id: 4, emoji: '🍜', tag: '美食', title: '街边的一碗汤粉', desc: '越南河内老城区，藏在巷子深处的小店。', story: '跟着当地人走进一条不起眼的小巷，找到了这家没有菜单的小店。老板娘用手势比划着问我要几块肉，汤端上来的瞬间，香气直接击中了我的胃。那一碗汤粉，是整段旅行里最难忘的味道。', location: '越南 · 河内', date: '2024年3月', imgSrc: null },
+  { id: 5, emoji: '🌅', tag: '自然', title: '冰岛极光初见', desc: '零下二十度的夜晚，天空突然燃起了绿色的火焰。', story: '等待了三个小时，就在我几乎放弃打算回车里取暖时，天边出现了一抹若隐若现的绿色。接下来的一个小时，极光像幕布一样铺满整个天空，从绿色变紫色，再变成粉色。我的眼泪在脸上冻成了冰。', location: '冰岛 · 雷克雅未克', date: '2023年2月', imgSrc: null },
+  { id: 6, emoji: '🌆', tag: '城市', title: '香港维多利亚港夜景', desc: '从太平山顶望下去，整座城市像一块发光的宝石。', story: '缆车缓缓升上山顶，随着高度的增加，城市的全貌逐渐展开。霓虹灯、车流、海面上的船只倒影——所有的光在夜色中汇聚成一幅壮观的画面。香港，这座城市永远不会让你感到寂寞。', location: '中国 · 香港', date: '2024年1月', imgSrc: null }
+];
+
+let currentTag = '全部';
+let lbIndex = 0;
+let filtered = [];
+let nextId = 100;
+let uploadImgSrc = null;
+
+function getFiltered(tag) {
+  return tag === '全部' ? [...photos] : photos.filter(p => p.tag === tag);
+}
+
+function renderGrid(tag) {
+  filtered = getFiltered(tag);
+  document.getElementById('results-count').textContent = '共 ' + filtered.length + ' 张照片';
+  const grid = document.getElementById('grid');
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty"><div class="e-icon">📭</div><p>该分类暂无照片</p></div>';
+    return;
+  }
+  grid.innerHTML = filtered.map((p, i) => {
+    const c = TAG_COLORS[p.tag] || { bg: '#F0F0F0', text: '#3A3A3A' };
+    const bg = TAG_PHOTO_BG[p.tag] || '#E8E8E8';
+    const photoHTML = p.imgSrc
+      ? `<img src="${p.imgSrc}" alt="${p.title}">`
+      : `<span style="font-size:44px">${p.emoji}</span>`;
+    return `<div class="card" onclick="openLightbox(${i})" style="animation-delay:${i * 0.04}s">
+      <div class="card-photo" style="background:${bg}">${photoHTML}</div>
+      <div class="card-body">
+        <span class="card-tag" style="background:${c.bg};color:${c.text}">${p.tag}</span>
+        <div class="card-title">${p.title}</div>
+        <div class="card-desc">${p.desc || p.story}</div>
+        <div class="card-meta">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="7" r="3"/><path d="M8 2C5.24 2 3 4.24 3 7c0 4 5 8 5 8s5-4 5-8c0-2.76-2.24-5-5-5z"/></svg>
+          ${p.location || ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  updateTabCounts();
+}
+
+function updateTabCounts() {
+  const tags = ['亚洲', '欧洲', '自然', '美食', '城市'];
+  document.getElementById('tc-all').textContent = photos.length;
+  tags.forEach(t => {
+    const el = document.getElementById('tc-' + t);
+    if (el) el.textContent = photos.filter(p => p.tag === t).length;
+  });
+}
+
+function filterTag(tag) {
+  currentTag = tag;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tag === tag));
+  renderGrid(tag);
+}
+
+// ── LIGHTBOX ──
+function openLightbox(idx) {
+  lbIndex = idx;
+  renderLightbox();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderLightbox() {
+  const p = filtered[lbIndex];
+  const bg = TAG_PHOTO_BG[p.tag] || '#E8E8E8';
+  const photoHTML = p.imgSrc
+    ? `<img src="${p.imgSrc}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover">`
+    : `<span style="font-size:80px">${p.emoji}</span>`;
+  document.getElementById('lb-image').innerHTML = photoHTML;
+  document.getElementById('lb-image').style.background = p.imgSrc ? 'none' : bg;
+  document.getElementById('lb-location').textContent = p.location || '';
+  document.getElementById('lb-tag').textContent = p.tag;
+  document.getElementById('lb-title').textContent = p.title;
+  document.getElementById('lb-story').textContent = p.story;
+  document.getElementById('lb-date').textContent = p.date || '';
+  document.getElementById('lb-loc-foot').textContent = p.location || '';
+  document.getElementById('lb-prev').disabled = lbIndex === 0;
+  document.getElementById('lb-next').disabled = lbIndex === filtered.length - 1;
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function navigateLightbox(dir) {
+  const next = lbIndex + dir;
+  if (next >= 0 && next < filtered.length) { lbIndex = next; renderLightbox(); }
+}
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('lightbox').classList.contains('open')) {
+    if (e.key === 'ArrowRight') navigateLightbox(1);
+    if (e.key === 'ArrowLeft') navigateLightbox(-1);
+    if (e.key === 'Escape') closeLightbox();
+  }
+  if (document.getElementById('modal-wrap').classList.contains('open') && e.key === 'Escape') closeUpload();
+});
+
+// ── UPLOAD ──
+function openUpload() {
+  document.getElementById('modal-wrap').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeUpload() {
+  document.getElementById('modal-wrap').classList.remove('open');
+  document.body.style.overflow = '';
+  resetForm();
+}
+function resetForm() {
+  ['f-title','f-location','f-date','f-story'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-tag').value = '亚洲';
+  document.getElementById('dz-preview').style.display = 'none';
+  document.getElementById('dz-icon').style.display = 'block';
+  document.getElementById('file-input').value = '';
+  uploadImgSrc = null;
+}
+
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    uploadImgSrc = e.target.result;
+    document.getElementById('dz-preview').src = uploadImgSrc;
+    document.getElementById('dz-preview').style.display = 'block';
+    document.getElementById('dz-icon').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function savePhoto() {
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) { showToast('请填写照片主题'); return; }
+  const tag = document.getElementById('f-tag').value;
+  const story = document.getElementById('f-story').value.trim();
+  const desc = story.length > 40 ? story.slice(0, 40) + '…' : story;
+  const newPhoto = {
+    id: nextId++,
+    emoji: getTagEmoji(tag),
+    tag, title, desc, story,
+    location: document.getElementById('f-location').value.trim(),
+    date: document.getElementById('f-date').value.trim(),
+    imgSrc: uploadImgSrc
+  };
+  photos.unshift(newPhoto);
+  closeUpload();
+  filterTag(currentTag);
+  showToast('照片已添加！');
+}
+
+function getTagEmoji(tag) {
+  const map = { '亚洲': '🏯', '欧洲': '🏰', '自然': '🌿', '美食': '🍽️', '城市': '🌃' };
+  return map[tag] || '📸';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── INIT ──
+renderGrid('全部');
+</script>
+</body>
+</html>
